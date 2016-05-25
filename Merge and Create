@@ -2,45 +2,46 @@
 *Merging open source data into one "Masterfile"
 
 clear
-cd "G:\Sherk, James\Labor Issues\Right to Work\Historical Data\"
+cd "K:\Sherk, James\Labor Issues\Right to Work\Historical Data\"
+
 *Compile data on outcome and control variables
 
-import excel "G:\Interns_2016_spring\Anil\Downloads\Master file 1940-1990 (yearly).xlsx", sheet("Sheet1") firstrow clear
+import excel "K:\Interns_2016_spring\Anil\Downloads\Master file 1940-1990 (yearly).xlsx", sheet("Sheet1") firstrow clear
 encode state, gen(state2)
 drop state
 rename state2 state
 order fips state year
 sort state year
-save "G:\Interns_2016_spring\Anil\Downloads\Master.dta", replace
+save "K:\Interns_2016_spring\Anil\Downloads\Master.dta", replace
 clear
 
-use "G:\Interns_2016_spring\Anil\Downloads\Decennial.dta"
+use "K:\Interns_2016_spring\Anil\Downloads\Decennial.dta"
 order fips state year
 sort state year
-save "G:\Interns_2016_spring\Anil\Downloads\Decennial.dta", replace
+save "K:\Interns_2016_spring\Anil\Downloads\Decennial.dta", replace
 clear
 
-use "G:\Interns_2016_spring\Anil\Downloads\Manufacturing.dta"
+use "K:\Interns_2016_spring\Anil\Downloads\Manufacturing.dta"
 order fips state year
 sort state year
-save "G:\Interns_2016_spring\Anil\Downloads\Manufacturing.dta", replace
+save "K:\Interns_2016_spring\Anil\Downloads\Manufacturing.dta", replace
 clear
 
-use "G:\Interns_2016_spring\Anil\Downloads\Land2.dta"
+use "K:\Interns_2016_spring\Anil\Downloads\Land2.dta"
 order fips state year
 sort state year
-save "G:\Interns_2016_spring\Anil\Downloads\Land2.dta", replace
+save "K:\Interns_2016_spring\Anil\Downloads\Land2.dta", replace
 clear
 
-use "G:\Interns_2016_spring\Anil\Downloads\Master.dta"
-merge 1:1 state year using "G:\Interns_2016_spring\Anil\Downloads\Decennial.dta"
+use "K:\Interns_2016_spring\Anil\Downloads\Master.dta"
+merge 1:1 state year using "K:\Interns_2016_spring\Anil\Downloads\Decennial.dta"
 drop _merge
-merge 1:1 state year using "G:\Interns_2016_spring\Anil\Downloads\Manufacturing.dta"
+merge 1:1 state year using "K:\Interns_2016_spring\Anil\Downloads\Manufacturing.dta"
 drop _merge
-merge 1:1 state year using "G:\Interns_2016_spring\Anil\Downloads\Land2.dta"
+merge 1:1 state year using "K:\Interns_2016_spring\Anil\Downloads\Land2.dta"
 drop _merge
 tsset state year
-save "G:\Interns_2016_spring\Anil\Downloads\Masterfile.dta", replace
+save "K:\Interns_2016_spring\Anil\Downloads\Masterfile.dta", replace
 edit
 
 
@@ -164,20 +165,39 @@ gen emplgrow1946 = 100*empl/empl1946
 label var emplgrow1946 "Employment Growth Since 1946 (1946 = 100)"
 drop empl1946 baseemp
 
+*Manufacturing Growth
+gen baseemp2 = mempl if year == 1969
+egen mempl1969 = mean(baseemp2), by(state)
+gen memplgrow1969 = 100*mempl/mempl1969
+label var memplgrow1969 "Manufacturing Employment Growth Since 1969 (1969 = 100)"
+drop mempl1969 baseemp2
+
+*Share of manufacturing in employment
+gen empl2 = empl*1000
+gen mshare = mempl/empl2
+
+*Population density per square mile
+egen landsqm = mean(landsqmi), by(state)
+gen popdens = pop/(landsqm*1000)
+label var popdens "Population Density by State"
+drop landsqm
+
+*Population growth
+gen basepop = pop if year == 1946
+egen pop1946 = mean(basepop), by(state)
+gen popgrow1946 = 100*pop/pop1946
+label var popgrow1946 "Population Growth Since 1946 (1946 = 100)"
+drop pop1946 basepop
+
+*Generate log of per capita income
+gen lpcincome = log(pcincome)
+label var lpcincome "Log of per capita income"
+
 *Percent White and Black*
 gen propwhite = white/(black+other+white)
 label var propwhite "Percentage White in State"
 gen propblack = black/(black+other+white)
 label var propblack "Percentage Black in State"
-
-*Logarythm of the Per Capita income
-lpcinc = log(pcincome)
-label var lpcinc "Per capita personal income, nominal dollars"
-
-*Population Density
-egen meanland = mean(landsqmi), by(state)
-popdens = pop/(meanland*1000)
-label var popdens "Population Density Per Square Mile"
 
 rename fips statefips
 label var statefips "State FIPS code"
@@ -185,11 +205,14 @@ label var statefips "State FIPS code"
 ssc install synth
 tsset statefips year
 
-save "G:\Interns_2016_spring\Anil\Downloads\Masterfile.dta", replace
-save "G:\Sherk, James\Labor Issues\Right to Work\Historical Data\Masterfile.dta", replace
+cd "K:\Sherk, James\Labor Issues\Right to Work\Historical Data\"
 
-keep if (statefips == 6 | statefips == 8  | statefips ==9  | statefips ==21  | statefips ==25  | statefips ==24  | statefips ==23  | statefips ==29  | statefips ==30  | statefips ==34  | statefips ==35  | statefips ==36  | statefips ==39  | statefips ==40  | statefips ==41  | statefips ==42  | statefips ==44  | statefips ==50  | statefips ==53  | statefips ==55  | statefips ==54 | statefips ==18  | statefips ==10  | statefips ==33  | statefips ==22 )
+save "K:\Interns_2016_spring\Anil\Downloads\Masterfile.dta", replace
+save "K:\Sherk, James\Labor Issues\Right to Work\Historical Data\Masterfile.dta", replace
+
+keep if (statefips == 6 | statefips == 8  | statefips ==9  | statefips ==21  | statefips ==25  | statefips ==24  | statefips ==23  | statefips ==29  | statefips ==30  | statefips ==34  | statefips ==35  | statefips ==36  | statefips ==39  | statefips ==37 | statefips ==40  | statefips ==41  | statefips ==42  | statefips ==44  | statefips ==50  | statefips ==53  | statefips ==55  | statefips ==54 | statefips ==18  | statefips ==10  | statefips ==33  | statefips ==22 )
 save Placebo_alt.dta, replace
 
-drop if ( statefips ==18  | statefips ==10  | statefips ==33  | statefips ==22)
+drop if (statefips ==18  | statefips ==10  | statefips ==33  | statefips ==22)
 save Pacebo_main.dta, replace
+
