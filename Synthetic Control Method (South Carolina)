@@ -1,0 +1,70 @@
+***
+************
+***
+*Adjust these locals based on the state/year you are using
+*Input the FIPS code of the state, its abbrevriation, and the year it passed RTW
+*Input the desired dependent variable -- empl or emplgrow (employment levels or employment growth rates)
+*Select whether you want the main control units (excluding states that passed & repealed RTW) or the alt control group (all states w/o RTW by end of period, including those that passed repealed)
+*Also replace mainoralt with desired choice (this selects the placebo file to load; won't work with wrong file
+*Default is to analyze all years from 1946 to 10 years after the passage of the RTW law
+
+local FIPS 45 // Insert State FIPS code
+local stabrev "SC" // Insert State Abrevriation
+local passed 1954 // Input year state passed RTW
+local depvar emplgrow1946 //empl for employment levels, emplgrow for employment growth rates, or emplgrow1946 for employment growth since 1946
+
+local main 6 8 9 21 25 24 29 30 34 35 36 39 40 41 42 44 50 53 54 55 
+local alt  6 8 9 21 25 24 29 30 34 36 39 40 41 42 44 50 53 54 55 18 10
+
+local controls `alt'
+local mainoralt alt
+
+local main 6 8 9 21 25 24 29 30 34 35 36 39 40 41 42 44 50 53 54 55 
+local alt  6 8 9 21 25 24 29 30 34 36 39 40 41 42 44 50 53 54 55 18 10
+local yrbefore = `passed'-1
+local yrfinal = `passed'+10
+
+***
+*******************
+***
+
+
+clear
+cd "K:\Interns_2016_spring\Anil\Downloads\"
+use Masterfile.dta
+*log using results_`stabrev', replace
+
+*Synthetic Control Analysis
+*Control variables are state population, per capita personal income, % with high school education or more in 1950 census, urban share in 1950 census; proportion white & black in 1950 census and;
+*Average summer and winter temperatures and precipitation over 1931-1960
+*Note that employment data from Illinois only begins in 1947, in Michigan in 1956, and in Minnesota in 1950. So these states are excluded from the control group. So are Hawaii and Alaska
+
+*Employment growth*
+tempname resmat
+tempname diffmat
+tempname predictors
+tempname controlgroup
+
+synth `depvar' `depvar'(1946(1)`yrbefore') `depvar'(`yrbefore') lpcincome popdens hs(1950) temp_winter(1950) temp_summer(1950) precip_winter(1950), trunit(`FIPS') trperiod(`passed') counit(`controls') xperiod(1946(1)`yrbefore') mspeperiod(1946(1)`yrbefore') resultsperiod(1946(1)`yrfinal')  unitnames(statename) nested allopt figure keep(results_`stabrev') replace 
+matrix `resmat' = e(RMSPE)
+matrix `diffmat' = e(Y_treated)-e(Y_synthetic)
+matrix `predictors' = e(X_balance)
+matrix `controlgroup' = e(W_weights)
+local names "`FIPS'"
+
+*Now run the placebo tests*
+use Placebo_`mainoralt'.dta
+foreach i in `controls' {
+synth `depvar' `depvar'(1946(1)`yrbefore') `depvar'(`yrbefore') lpcincome popdens hs(1950) temp_winter(1950) temp_summer(1950) precip_winter(1950), trunit(`i') trperiod(`passed') xperiod(1946(1)`yrbefore') mspeperiod(1946(1)`yrbefore') resultsperiod(1946(1)`yrfinal')  unitnames(statename) nested allopt
+        matrix `resmat' = nullmat(`resmat') \ e(RMSPE)
+		matrix `diffmat' =nullmat(`diffmat') , e(Y_treated)- e(Y_synthetic)
+        local names `"`names' `"`i'"'"'
+        }
+        mat colnames `resmat' = "RMSPE"
+        mat rownames `resmat' = `names'
+        matlist `resmat' , row("Treated Unit")
+		mat colnames `diffmat' = `names'
+        matlist `diffmat'
+		matlist `predictors'
+		matlist `controlgroup'
+*log close
