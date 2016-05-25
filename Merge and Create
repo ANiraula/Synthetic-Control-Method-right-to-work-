@@ -1,0 +1,195 @@
+*Stata
+*Merging open source data into one "Masterfile"
+
+clear
+cd "G:\Sherk, James\Labor Issues\Right to Work\Historical Data\"
+*Compile data on outcome and control variables
+
+import excel "G:\Interns_2016_spring\Anil\Downloads\Master file 1940-1990 (yearly).xlsx", sheet("Sheet1") firstrow clear
+encode state, gen(state2)
+drop state
+rename state2 state
+order fips state year
+sort state year
+save "G:\Interns_2016_spring\Anil\Downloads\Master.dta", replace
+clear
+
+use "G:\Interns_2016_spring\Anil\Downloads\Decennial.dta"
+order fips state year
+sort state year
+save "G:\Interns_2016_spring\Anil\Downloads\Decennial.dta", replace
+clear
+
+use "G:\Interns_2016_spring\Anil\Downloads\Manufacturing.dta"
+order fips state year
+sort state year
+save "G:\Interns_2016_spring\Anil\Downloads\Manufacturing.dta", replace
+clear
+
+use "G:\Interns_2016_spring\Anil\Downloads\Land2.dta"
+order fips state year
+sort state year
+save "G:\Interns_2016_spring\Anil\Downloads\Land2.dta", replace
+clear
+
+use "G:\Interns_2016_spring\Anil\Downloads\Master.dta"
+merge 1:1 state year using "G:\Interns_2016_spring\Anil\Downloads\Decennial.dta"
+drop _merge
+merge 1:1 state year using "G:\Interns_2016_spring\Anil\Downloads\Manufacturing.dta"
+drop _merge
+merge 1:1 state year using "G:\Interns_2016_spring\Anil\Downloads\Land2.dta"
+drop _merge
+tsset state year
+save "G:\Interns_2016_spring\Anil\Downloads\Masterfile.dta", replace
+edit
+
+
+gen statename = ""
+replace statename = "AL" if fips == 1
+replace statename = "AK" if fips == 2
+replace statename = "AZ" if fips == 4
+replace statename = "AR" if fips == 5
+replace statename = "CA" if fips == 6
+replace statename = "CO" if fips == 8
+replace statename = "CT" if fips == 9
+replace statename = "DE" if fips == 10
+replace statename = "FL" if fips == 12
+replace statename = "GA" if fips == 13
+replace statename = "HI" if fips == 15
+replace statename = "ID" if fips == 16
+replace statename = "IL" if fips == 17
+replace statename = "IN" if fips == 18
+replace statename = "IA" if fips == 19
+replace statename = "KS" if fips == 20
+replace statename = "KY" if fips == 21
+replace statename = "LA" if fips == 22
+replace statename = "ME" if fips == 23
+replace statename = "MD" if fips == 24
+replace statename = "MA" if fips == 25
+replace statename = "MI" if fips == 26
+replace statename = "MN" if fips == 27
+replace statename = "MS" if fips == 28
+replace statename = "MO" if fips == 29
+replace statename = "MT" if fips == 30
+replace statename = "NE" if fips == 31
+replace statename = "NV" if fips == 32
+replace statename = "NH" if fips == 33
+replace statename = "NJ" if fips == 34
+replace statename = "NM" if fips == 35
+replace statename = "NY" if fips == 36
+replace statename = "NC" if fips == 37
+replace statename = "ND" if fips == 38
+replace statename = "OH" if fips == 39
+replace statename = "OK" if fips == 40
+replace statename = "OR" if fips == 41
+replace statename = "PA" if fips == 42
+replace statename = "RI" if fips == 44
+replace statename = "SC" if fips == 45
+replace statename = "SD" if fips == 46
+replace statename = "TN" if fips == 47
+replace statename = "TX" if fips == 48
+replace statename = "UT" if fips == 49
+replace statename = "VT" if fips == 50
+replace statename = "VA" if fips == 51
+replace statename = "WA" if fips == 53
+replace statename = "WV" if fips == 54
+replace statename = "WI" if fips == 55
+replace statename = "WY" if fips == 56
+
+
+*Generate Right-to-Work Variable
+*Note that some states passed & then repealed RTW
+*States are coded as RTW the first full year after the law's passage. So if the law took effect in June 1947 state is coded as RTW for 1948 and beyond.
+*Similarly for repeal of law -- not RTW first full year after repeal
+*Maine passed a law in 1947 but it never took effect; repealed in a voter referendum.
+gen RTW = 0
+replace RTW = 1 if statename == "AR" & year > 1944
+replace RTW = 1 if statename == "FL" & year > 1944
+replace RTW = 1 if statename ==  "AZ" & year > 1946
+replace RTW = 1 if statename == "NE"  & year > 1946
+replace RTW = 1 if statename == "VA" & year > 1947
+replace RTW = 1 if statename == "TN" & year > 1947
+replace RTW = 1 if statename == "NC"  & year > 1947
+replace RTW = 1 if statename == "GA"  & year > 1947
+replace RTW = 1 if statename == "IA" & year > 1947
+replace RTW = 1 if statename == "SD"  & year > 1947
+replace RTW = 1 if statename == "TX"  & year > 1947
+replace RTW = 1 if statename == "ND"  & year > 1948
+replace RTW = 1 if statename == "NV" & year > 1952
+replace RTW = 1 if statename == "AL" & year > 1953
+replace RTW = 1 if statename == "MS" & year >  1954
+replace RTW = 1 if statename == "SC" & year > 1954
+replace RTW = 1 if statename == "UT" & year > 1955
+replace RTW = 1 if statename == "KS" & year > 1958
+replace RTW = 1 if statename == "WY"  & year > 1963
+replace RTW = 1 if statename == "LA" & year > 1976
+replace RTW = 1 if statename == "ID"  & year >  1985
+replace RTW = 1 if statename == "OK" & year > 2001
+replace RTW = 1 if statename == "IN" & year > 2012
+replace RTW = 1 if statename == "MI" & year > 2013
+replace RTW = 1 if statename == "WI" & year >  2015
+replace RTW = 1 if statename == "WV" & year >  2016
+replace RTW = 1 if statename == "IN" & year > 1957 & year < 1966
+replace RTW = 1 if statename == "LA" & year > 1954 & year < 1957
+replace RTW = 1 if statename == "DE" & year > 1947 & year < 1950
+replace RTW = 1 if statename == "NH" & year > 1947 & year < 1950
+replace RTW = 1 if statename == "HI" & year > 1945 & year < 1960
+replace RTW = 1 if statename == "ME" & year > 1947 & year < 1948
+
+*Variable Labels*
+label var nohs "% with less than a high school education"
+label var hs "% with a High School education or greater"
+label var ushare "% of Population in Urban Area"
+label var mempl "Manufacturing Employment"
+label var RTW "Right to Work law in effect"
+label var landsqmi "State Land Area, Square Miles"
+label var pcincome "Per capita personal income, nominal dollars"
+label var pop "Total State Population"
+
+foreach season in winter spring summer fall {
+	label var temp_`season' "Average `season' Temperatures, 1931-1960"
+	label var precip_`season' "Average `season' Precipitation, 1931-1960"
+}
+
+*Generate additional control variables
+*Employment Growth*
+label var empl "Total nonfarm employment, in thousands"
+sort state year
+gen emplgrow = empl[_n]/empl[_n-1]-1 if state[_n] == state[_n-1]
+label var emplgrow "Annual % growth in nonfarm employment"
+
+gen baseemp = empl if year == 1946
+egen empl1946 = mean(baseemp), by(state)
+gen emplgrow1946 = 100*empl/empl1946
+label var emplgrow1946 "Employment Growth Since 1946 (1946 = 100)"
+drop empl1946 baseemp
+
+*Percent White and Black*
+gen propwhite = white/(black+other+white)
+label var propwhite "Percentage White in State"
+gen propblack = black/(black+other+white)
+label var propblack "Percentage Black in State"
+
+*Logarythm of the Per Capita income
+lpcinc = log(pcincome)
+label var lpcinc "Per capita personal income, nominal dollars"
+
+*Population Density
+egen meanland = mean(landsqmi), by(state)
+popdens = pop/(meanland*1000)
+label var popdens "Population Density Per Square Mile"
+
+rename fips statefips
+label var statefips "State FIPS code"
+
+ssc install synth
+tsset statefips year
+
+save "G:\Interns_2016_spring\Anil\Downloads\Masterfile.dta", replace
+save "G:\Sherk, James\Labor Issues\Right to Work\Historical Data\Masterfile.dta", replace
+
+keep if (statefips == 6 | statefips == 8  | statefips ==9  | statefips ==21  | statefips ==25  | statefips ==24  | statefips ==23  | statefips ==29  | statefips ==30  | statefips ==34  | statefips ==35  | statefips ==36  | statefips ==39  | statefips ==40  | statefips ==41  | statefips ==42  | statefips ==44  | statefips ==50  | statefips ==53  | statefips ==55  | statefips ==54 | statefips ==18  | statefips ==10  | statefips ==33  | statefips ==22 )
+save Placebo_alt.dta, replace
+
+drop if ( statefips ==18  | statefips ==10  | statefips ==33  | statefips ==22)
+save Pacebo_main.dta, replace
