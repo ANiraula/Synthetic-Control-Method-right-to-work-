@@ -35,7 +35,7 @@ use Masterfile.dta
 *log using results_`stabrev', replace
 
 *Synthetic Control Analysis
-*Control variables are state population, per capita personal income, % with high school education or more in 1950 census, urban share in 1950 census; proportion white & black in 1950 census and;
+*Control variables are population density, log of per capita personal income, % with high school education or more in 1950 census;
 *Average summer and winter temperatures and precipitation over 1931-1960
 *Note that employment data from Illinois only begins in 1947, in Michigan in 1956, and in Minnesota in 1950. So these states are excluded from the control group. So are Hawaii and Alaska
 
