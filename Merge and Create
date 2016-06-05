@@ -152,7 +152,8 @@ foreach season in winter spring summer fall {
 	label var precip_`season' "Average `season' Precipitation, 1931-1960"
 }
 
-*Generate additional control variables
+*Generating additional control variables
+
 *Employment Growth*
 label var empl "Total nonfarm employment, in thousands"
 sort state year
@@ -189,7 +190,7 @@ gen popgrow1946 = 100*pop/pop1946
 label var popgrow1946 "Population Growth Since 1946 (1946 = 100)"
 drop pop1946 basepop
 
-*Generate log of per capita income
+*Log of per capita income
 gen lpcincome = log(pcincome)
 label var lpcincome "Log of per capita income"
 
